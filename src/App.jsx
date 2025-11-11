@@ -11,16 +11,26 @@ export default function App() {
   const calculateSpeed = () => {
     const originalFrames = timeToFrames(originalTime, fps);
     const desiredFrames = timeToFrames(desiredTime, fps);
-    if (originalFrames === 0 || desiredFrames === 0) {
-      setSpeed(0);
+
+    // validações básicas
+    if (originalFrames === 0) {
+      setSpeed(null);
       return;
     }
-    const newSpeed = (desiredFrames / originalFrames) * 100;
-    setSpeed(newSpeed.toFixed(2));
+    if (desiredFrames === 0) {
+      setSpeed(null);
+      return;
+    }
+
+    // CORREÇÃO: velocidade = original / desejado * 100
+    const newSpeed = (originalFrames / desiredFrames) * 100;
+    setSpeed(Number(newSpeed.toFixed(2)));
   };
 
   const handleChange = (setter, key, value) => {
-    setter(prev => ({ ...prev, [key]: Number(value) }));
+    // evita números negativos e strings vazias
+    const n = Number(value);
+    setter(prev => ({ ...prev, [key]: Number.isNaN(n) ? 0 : Math.max(0, Math.floor(n)) }));
   };
 
   return (
@@ -32,8 +42,9 @@ export default function App() {
           <span className="font-semibold text-gray-700">FPS (Quadros por segundo)</span>
           <input
             type="number"
+            min="1"
             value={fps}
-            onChange={(e) => setFps(Number(e.target.value))}
+            onChange={(e) => setFps(Math.max(1, Number(e.target.value) || 0))}
             className="w-full p-2 border rounded-lg mt-1"
           />
         </label>
@@ -46,6 +57,7 @@ export default function App() {
                 <input
                   key={k}
                   type="number"
+                  min="0"
                   value={originalTime[k]}
                   onChange={(e)=>handleChange(setOriginalTime,k,e.target.value)}
                   className="p-2 border rounded-lg text-center"
@@ -62,6 +74,7 @@ export default function App() {
                 <input
                   key={k}
                   type="number"
+                  min="0"
                   value={desiredTime[k]}
                   onChange={(e)=>handleChange(setDesiredTime,k,e.target.value)}
                   className="p-2 border rounded-lg text-center"
